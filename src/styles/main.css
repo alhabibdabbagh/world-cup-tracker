@@ -225,10 +225,27 @@ code {
 }
 
 .team-flag {
-  font-size: 2rem;
+  width: 40px;
+  min-width: 40px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
 }
 
+.team-flag-img {
+  width: 40px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #111;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.team-flag-emoji {
+  font-size: 2rem;
+}
 .team-info {
   display: flex;
   flex-direction: column;

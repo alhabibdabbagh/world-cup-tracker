@@ -1,34 +1,95 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Header from './components/Header'
 import FilterBar from './components/FilterBar'
 import MatchCard from './components/MatchCard'
+import LoadingState from './components/LoadingState'
 import dataService from './data/dataService'
 
-function App() {
-  const [activeFilter, setActiveFilter] = useState('ALL')
+const REFRESH_INTERVAL_MS = 60_000
 
-  const tournamentInfo = dataService.getTournamentInfo()
-  const allMatches = dataService.getAllMatches()
+function App() {
+  const tournaments = useMemo(() => dataService.getAvailableTournaments(), [])
+  const defaultTournamentYear = tournaments[tournaments.length - 1]?.year || 2026
+
+  const [selectedTournamentYear, setSelectedTournamentYear] = useState(defaultTournamentYear)
+  const [activeFilter, setActiveFilter] = useState('ALL')
+  const [matches, setMatches] = useState(() => dataService.getAllMatches(defaultTournamentYear))
+  const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [dataSource, setDataSource] = useState('static')
+  const [apiError, setApiError] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(new Date())
+
+  const tournamentInfo = dataService.getTournamentInfo(selectedTournamentYear)
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadMatches = async (showLoading = false) => {
+      if (showLoading) {
+        setIsLoading(true)
+      } else {
+        setIsRefreshing(true)
+      }
+
+      const result = await dataService.getMatches(selectedTournamentYear)
+
+      if (!isActive) {
+        return
+      }
+
+      setMatches(result.matches)
+      setDataSource(result.source)
+      setApiError(result.error)
+      setLastUpdated(result.lastUpdated)
+      setIsLoading(false)
+      setIsRefreshing(false)
+    }
+
+    loadMatches(true)
+
+    const intervalId = window.setInterval(() => {
+      loadMatches(false)
+    }, REFRESH_INTERVAL_MS)
+
+    return () => {
+      isActive = false
+      window.clearInterval(intervalId)
+    }
+  }, [selectedTournamentYear])
 
   const filteredMatches = useMemo(() => {
     if (activeFilter === 'ALL') {
-      return allMatches
+      return matches
     }
-    return dataService.getMatchesByStatus(activeFilter)
-  }, [activeFilter, allMatches])
 
-  const handleFilterChange = (filter) => {
-    setActiveFilter(filter)
+    return dataService.filterMatchesByStatus(matches, activeFilter)
+  }, [activeFilter, matches])
+
+  const handleTournamentChange = (year) => {
+    setSelectedTournamentYear(Number(year))
+    setActiveFilter('ALL')
   }
 
   return (
     <div>
-      <Header tournamentInfo={tournamentInfo} />
-      
-      <div className="container">
-        <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+      <Header
+        tournamentInfo={tournamentInfo}
+        tournaments={tournaments}
+        selectedTournamentYear={selectedTournamentYear}
+        onTournamentChange={handleTournamentChange}
+        dataSource={dataSource}
+        apiError={apiError}
+        lastUpdated={lastUpdated}
+        isRefreshing={isRefreshing}
+      />
 
-        {filteredMatches.length > 0 ? (
+      <div className="container">
+        <FilterBar activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+
+        {isLoading ? (
+          <LoadingState />
+        ) : filteredMatches.length > 0 ? (
           <div className="match-list">
             {filteredMatches.map(match => (
               <MatchCard key={match.id} match={match} />
@@ -38,15 +99,20 @@ function App() {
           <div className="empty-state">
             <div className="empty-state-icon">🔍</div>
             <h2>No Matches Found</h2>
-            <p>Try selecting a different filter or check back later.</p>
+            <p>Try selecting a different tournament or filter.</p>
           </div>
         )}
       </div>
 
       <footer className="footer">
         <p>📊 World Cup Tracker • Free, open-source match information</p>
-        <p>Data source: Local static dataset • No external API required</p>
-        <p>🔒 Your privacy is protected • No tracking, no cookies</p>
+        <p>
+          Data source:{' '}
+          {dataSource === 'api'
+            ? 'football-data.org live API'
+            : 'Local static fallback'}
+        </p>
+        <p>🔒 API key is protected by serverless proxy</p>
       </footer>
     </div>
   )

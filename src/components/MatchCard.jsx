@@ -1,5 +1,66 @@
+import { useState } from 'react'
 import StatusBadge from './StatusBadge'
 import EventList from './EventList'
+
+const FLAG_CODES = {
+  QAT: 'qa',
+  ECU: 'ec',
+  SEN: 'sn',
+  NED: 'nl',
+  ENG: 'gb-eng',
+  IRN: 'ir',
+  USA: 'us',
+  WAL: 'gb-wls',
+  ARG: 'ar',
+  KSA: 'sa',
+  MEX: 'mx',
+  POL: 'pl',
+  FRA: 'fr',
+  AUS: 'au',
+  DEN: 'dk',
+  TUN: 'tn',
+  ESP: 'es',
+  CRC: 'cr',
+  GER: 'de',
+  JPN: 'jp',
+  BEL: 'be',
+  CAN: 'ca',
+  MAR: 'ma',
+  CRO: 'hr',
+  BRA: 'br',
+  SRB: 'rs',
+  SUI: 'ch',
+  CMR: 'cm',
+  POR: 'pt',
+  GHA: 'gh',
+  URU: 'uy',
+  KOR: 'kr',
+  TUR: 'tr'
+}
+
+function getFlagCode(team) {
+  return team.flagCode || team.countryCode || FLAG_CODES[team.code?.toUpperCase()]
+}
+
+function TeamFlag({ team }) {
+  const [hasError, setHasError] = useState(false)
+  const flagCode = getFlagCode(team)
+  const flagUrl = team.flagUrl || (flagCode ? `https://flagcdn.com/w40/${flagCode}.png` : null)
+
+  if (!flagUrl || hasError) {
+    return <span className="team-flag-emoji">{team.flag || '🏳️'}</span>
+  }
+
+  return (
+    <img
+      className="team-flag-img"
+      src={flagUrl}
+      alt={`${team.name} flag`}
+      loading="lazy"
+      onError={() => setHasError(true)}
+    />
+  )
+}
 
 function MatchCard({ match }) {
   const formatDate = (dateString) => {
@@ -28,7 +89,9 @@ function MatchCard({ match }) {
       <div className="match-score">
         <div className="teams-container">
           <div className="team">
-            <div className="team-flag">{match.homeTeam.flag}</div>
+            <div className="team-flag">
+              <TeamFlag team={match.homeTeam} />
+            </div>
             <div className="team-info">
               <div className="team-name">{match.homeTeam.name}</div>
               <div className="team-code">{match.homeTeam.code}</div>
@@ -55,7 +118,9 @@ function MatchCard({ match }) {
               <div className="team-name">{match.awayTeam.name}</div>
               <div className="team-code">{match.awayTeam.code}</div>
             </div>
-            <div className="team-flag">{match.awayTeam.flag}</div>
+            <div className="team-flag">
+              <TeamFlag team={match.awayTeam} />
+            </div>
           </div>
         </div>
       </div>
