@@ -73,6 +73,13 @@ function Calculator() {
     setWaitingForNewValue(false)
   }
 
+  const getButtonClasses = (btn) => {
+    let classes = `calc-btn ${btn.className}`
+    if (btn.fullWidth) classes += ' full-width'
+    if (btn.span2) classes += ' span-2'
+    return classes
+  }
+
   const buttons = [
     // Row 1: C, ÷, ×, -, +
     { label: 'C', onClick: handleClear, className: 'calc-btn-clear', fullWidth: true },
@@ -106,54 +113,15 @@ function Calculator() {
           <div className="display-value">{display}</div>
         </div>
         <div className="calculator-buttons">
-          {buttons.map((btn, index) => {
-            // Clear button - full width
-            if (btn.fullWidth && btn.className === 'calc-btn-clear') {
-              return (
-                <button
-                  key={index}
-                  className={`calc-btn ${btn.className} full-width`}
-                  onClick={btn.onClick}
-                >
-                  {btn.label}
-                </button>
-              )
-            }
-            // Equals button - full width
-            if (btn.fullWidth && btn.className === 'calc-btn-equals') {
-              return (
-                <button
-                  key={index}
-                  className={`calc-btn ${btn.className} full-width`}
-                  onClick={btn.onClick}
-                >
-                  {btn.label}
-                </button>
-              )
-            }
-            // 0 button - span 2
-            if (btn.span2) {
-              return (
-                <button
-                  key={index}
-                  className={`calc-btn ${btn.className} span-2`}
-                  onClick={btn.onClick}
-                >
-                  {btn.label}
-                </button>
-              )
-            }
-            // Regular button
-            return (
-              <button
-                key={index}
-                className={`calc-btn ${btn.className}`}
-                onClick={btn.onClick}
-              >
-                {btn.label}
-              </button>
-            )
-          })}
+          {buttons.map((btn, index) => (
+            <button
+              key={index}
+              className={getButtonClasses(btn)}
+              onClick={btn.onClick}
+            >
+              {btn.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>

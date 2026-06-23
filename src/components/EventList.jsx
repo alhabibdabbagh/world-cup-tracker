@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EVENT_TYPES } from '../data/constants'
 
 function EventList({ events = [] }) {
   const [expanded, setExpanded] = useState(false)
@@ -22,36 +23,11 @@ function EventList({ events = [] }) {
         )}
       </div>
     )
-  }
-
-  const getEventIcon = (type) => {
-    switch (type?.toUpperCase()) {
-      case 'GOAL':
-        return '⚽'
-      case 'YELLOW_CARD':
-        return '🟨'
-      case 'RED_CARD':
-        return '🟥'
-      case 'SUBSTITUTION':
-        return '🔄'
-      default:
-        return '•'
     }
-  }
 
-  const getEventTypeClass = (type) => {
-    switch (type?.toUpperCase()) {
-      case 'GOAL':
-        return 'goal'
-      case 'YELLOW_CARD':
-        return 'yellow-card'
-      case 'RED_CARD':
-        return 'red-card'
-      case 'SUBSTITUTION':
-        return 'substitution'
-      default:
-        return ''
-    }
+  const getEventDisplay = (type) => {
+    const typeUpper = type?.toUpperCase()
+    return EVENT_TYPES[typeUpper] || { icon: '•', class: '', label: type }
   }
 
   const formatEventType = (type) => {
@@ -71,10 +47,15 @@ function EventList({ events = [] }) {
         <div className="events-list">
           {events.map(event => (
             <div key={event.id} className="event">
-              <span className="event-minute">{event.minute}'</span>
-              <span className={`event-type ${getEventTypeClass(event.type)}`}>
-                {getEventIcon(event.type)} {formatEventType(event.type)}
-              </span>
+                            <span className="event-minute">{event.minute}'</span>
+              {(() => {
+                const display = getEventDisplay(event.type)
+                return (
+                  <span className={`event-type ${display.class}`}>
+                    {display.icon} {formatEventType(event.type)}
+                  </span>
+                )
+              })()}
               <span className="event-player">{event.player}</span>
               {event.description && (
                 <span className="event-description"> ({event.description})</span>

@@ -1,69 +1,5 @@
 import matchesData from './matches.json'
-
-const TOURNAMENTS = {
-  2022: {
-    tournament: 'FIFA World Cup 2022',
-    country: 'Qatar',
-    year: 2022,
-    label: '2022 Qatar'
-  },
-  2026: {
-    tournament: 'FIFA World Cup 2026',
-    country: 'USA • Canada • Mexico',
-    year: 2026,
-    label: '2026 USA • Canada • Mexico'
-  }
-}
-
-const FLAG_CODES = {
-  ARG: 'ar',
-  AUS: 'au',
-  BEL: 'be',
-  BRA: 'br',
-  CAN: 'ca',
-  CMR: 'cm',
-  CRC: 'cr',
-  CRO: 'hr',
-  DEN: 'dk',
-  ECU: 'ec',
-  EGY: 'eg',
-  ENG: 'gb-eng',
-  ESP: 'es',
-  FRA: 'fr',
-  GER: 'de',
-  GHA: 'gh',
-  GRE: 'gr',
-  IRN: 'ir',
-  ITA: 'it',
-  JAM: 'jm',
-  JPN: 'jp',
-  KOR: 'kr',
-  KSA: 'sa',
-  MAR: 'ma',
-  MEX: 'mx',
-  NED: 'nl',
-  PAR: 'py',
-  PER: 'pe',
-  POL: 'pl',
-  POR: 'pt',
-  QAT: 'qa',
-  SEN: 'sn',
-  SRB: 'rs',
-  SVK: 'sk',
-  SUI: 'ch',
-  SVN: 'si',
-  SWE: 'se',
-  TUN: 'tn',
-  TUR: 'tr',
-  UKR: 'ua',
-  URU: 'uy',
-  USA: 'us',
-  UZB: 'uz',
-  VEN: 've',
-  VIE: 'vn',
-  WAL: 'gb-wls',
-  ZIM: 'zw'
-}
+import { TOURNAMENTS, FLAG_CODES, STAGE_MAPPING } from './constants'
 
 function nullableNumber(value) {
   return typeof value === 'number' ? value : null
@@ -106,13 +42,8 @@ class DataService {
       return matches
     }
 
+    // Return matches without modification to preserve original flags from JSON
     return matches.filter(match => this.getMatchYear(match) === Number(year))
-  }
-
-  getMatchesByStatus(status, year) {
-    return this.getAllMatches(year).filter(match =>
-      match.status?.toUpperCase() === status.toUpperCase()
-    )
   }
 
   filterMatchesByStatus(matches, status) {
@@ -132,8 +63,10 @@ class DataService {
         lastUpdated: new Date()
       }
     } catch (error) {
+      // Use static data with flags preserved
+      const staticMatches = this.getAllMatches(year)
       return {
-        matches: this.getAllMatches(year),
+        matches: staticMatches,
         source: 'static',
         error: error.message,
         lastUpdated: new Date()
@@ -193,14 +126,31 @@ class DataService {
       .toUpperCase()
 
     const flagCode = FLAG_CODES[code]
+    const flagEmoji = this.getCountryEmoji(code)
 
     return {
       name: team.shortName || team.name || 'TBD',
       code,
-      flag: '',
+      flag: flagEmoji,
       flagCode,
       flagUrl: flagCode ? `https://flagcdn.com/w40/${flagCode}.png` : null
     }
+  }
+
+  getCountryEmoji(code) {
+    const emojiMap = {
+      ARG: '🇦🇷', AUS: '🇦🇺', BEL: '🇧🇪', BRA: '🇧🇷', CAN: '🇨🇦',
+      CMR: '🇨🇲', CRC: '🇨🇷', CRO: '🇭🇷', DEN: '🇩🇰', ECU: '🇪🇨',
+      EGY: '🇪🇬', ENG: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ESP: '🇪🇸', FRA: '🇫🇷', GER: '🇩🇪',
+      GHA: '🇬🇭', GRE: '🇬🇷', IRN: '🇮🇷', ITA: '🇮🇹', JAM: '🇯🇲',
+      JPN: '🇯🇵', KOR: '🇰🇷', KSA: '🇸🇦', MAR: '🇲🇦', MEX: '🇲🇽',
+      NED: '🇳🇱', PAR: '🇵🇾', PER: '🇵🇪', POL: '🇵🇱', POR: '🇵🇹',
+      QAT: '🇶🇦', SEN: '🇸🇳', SRB: '🇷🇸', SVK: '🇸🇰', SUI: '🇨🇭',
+      SVN: '🇸🇮', SWE: '🇸🇪', TUN: '🇹🇳', TUR: '🇹🇷', UKR: '🇺🇦',
+      URU: '🇺🇾', USA: '🇺🇸', UZB: '🇺🇿', VEN: '🇻🇪', VIE: '🇻🇳',
+      WAL: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', ZIM: '🇿🇼'
+    }
+    return emojiMap[code] || '🏳️'
   }
 
   mapStatus(status) {
@@ -225,16 +175,7 @@ class DataService {
   }
 
   mapStage(stage) {
-    const stages = {
-      GROUP_STAGE: 'Group Stage',
-      LAST_16: 'Round of 16',
-      QUARTER_FINALS: 'Quarter-Finals',
-      SEMI_FINALS: 'Semi-Finals',
-      THIRD_PLACE: 'Third Place',
-      FINAL: 'Final'
-    }
-
-    return stages[stage] || stage || ''
+    return STAGE_MAPPING[stage] || stage || ''
   }
 
   mapGroup(group) {
@@ -257,12 +198,14 @@ class DataService {
         stadium: localMatch.stadium || apiMatch.stadium,
         events: localMatch.events || apiMatch.events,
         homeTeam: {
+          ...apiMatch.homeTeam,
           ...localMatch.homeTeam,
-          ...apiMatch.homeTeam
+          flag: localMatch.homeTeam?.flag || apiMatch.homeTeam?.flag || '🏳️'
         },
         awayTeam: {
+          ...apiMatch.awayTeam,
           ...localMatch.awayTeam,
-          ...apiMatch.awayTeam
+          flag: localMatch.awayTeam?.flag || apiMatch.awayTeam?.flag || '🏳️'
         }
       }
     })

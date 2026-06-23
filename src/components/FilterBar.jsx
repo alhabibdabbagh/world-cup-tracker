@@ -1,10 +1,7 @@
+import { FILTER_OPTIONS } from '../data/constants'
+
 function FilterBar({ activeFilter, onFilterChange }) {
-  const filters = [
-    { key: 'ALL', label: 'All Matches' },
-    { key: 'SCHEDULED', label: 'Scheduled' },
-    { key: 'LIVE', label: 'Live' },
-    { key: 'FINISHED', label: 'Finished' }
-  ]
+  const filters = FILTER_OPTIONS
 
   return (
     <div className="container">

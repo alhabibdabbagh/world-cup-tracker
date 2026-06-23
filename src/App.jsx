@@ -4,15 +4,14 @@ import FilterBar from './components/FilterBar'
 import MatchCard from './components/MatchCard'
 import LoadingState from './components/LoadingState'
 import dataService from './data/dataService'
-
-const REFRESH_INTERVAL_MS = 60_000
+import { REFRESH_INTERVAL_MS, MATCH_STATUSES } from './data/constants'
 
 function App() {
   const tournaments = useMemo(() => dataService.getAvailableTournaments(), [])
-  const defaultTournamentYear = tournaments[tournaments.length - 1]?.year || 2026
+  const defaultTournamentYear = 2022
 
   const [selectedTournamentYear, setSelectedTournamentYear] = useState(defaultTournamentYear)
-  const [activeFilter, setActiveFilter] = useState('ALL')
+  const [activeFilter, setActiveFilter] = useState(MATCH_STATUSES.ALL)
   const [matches, setMatches] = useState(() => dataService.getAllMatches(defaultTournamentYear))
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -61,7 +60,7 @@ function App() {
   const filteredMatches = useMemo(() => {
     let result = matches
     
-    if (activeFilter !== 'ALL') {
+    if (activeFilter !== MATCH_STATUSES.ALL) {
       result = dataService.filterMatchesByStatus(matches, activeFilter)
     }
 
@@ -77,7 +76,7 @@ function App() {
 
   const handleTournamentChange = (year) => {
     setSelectedTournamentYear(Number(year))
-    setActiveFilter('ALL')
+    setActiveFilter(MATCH_STATUSES.ALL)
   }
 
   return (
