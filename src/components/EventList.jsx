@@ -1,8 +1,20 @@
 import { useState } from 'react'
 import { EVENT_TYPES } from '../data/constants'
 
-function EventList({ events = [] }) {
+function EventList({ events = [], matchStatus = null }) {
   const [expanded, setExpanded] = useState(false)
+
+  // Don't show events for matches that haven't been played yet
+  const isMatchNotYetPlayed = matchStatus === 'SCHEDULED' || matchStatus === 'TIMED'
+  if (isMatchNotYetPlayed) {
+    return (
+      <div className="events-section">
+        <div className="empty-events">
+          Match not yet played
+        </div>
+      </div>
+    )
+  }
 
   if (!events || events.length === 0) {
     return (

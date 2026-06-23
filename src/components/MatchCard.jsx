@@ -105,7 +105,7 @@ function MatchCard({ match }) {
         </div>
       )}
 
-      <EventList events={match.events} />
+      <EventList events={match.events} matchStatus={match.status} />
     </div>
   )
 }

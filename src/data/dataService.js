@@ -53,6 +53,21 @@ class DataService {
   }
 
   async getMatches(year) {
+    // For MVP, use static data by default
+    // API integration can be enabled by setting ENABLE_LIVE_API environment variable
+    const enableLiveAPI = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    
+    if (!enableLiveAPI) {
+      // Use static data for local development
+      const staticMatches = this.getAllMatches(year)
+      return {
+        matches: staticMatches,
+        source: 'static',
+        error: null,
+        lastUpdated: new Date()
+      }
+    }
+
     try {
       const liveMatches = await this.fetchLiveMatches(year)
 

@@ -84,6 +84,31 @@ code {
   font-size: 0.85rem;
   color: #888;
   margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.refresh-indicator {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  color: #00bfa5;
+}
+
+.data-source-indicator {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.error-banner {
+  background-color: rgba(255, 152, 0, 0.2);
+  border-bottom: 2px solid #ff9800;
+  color: #ffb74d;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* Filter Bar */
@@ -242,9 +267,9 @@ code {
 }
 
 .team-flag {
-  width: 40px;
-  min-width: 40px;
-  height: 28px;
+  width: 50px;
+  min-width: 50px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,7 +286,9 @@ code {
 }
 
 .team-flag-emoji {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  line-height: 1;
+  display: block;
 }
 .team-info {
   display: flex;
@@ -531,8 +558,8 @@ code {
     gap: 0.5rem;
   }
 
-  .team-flag {
-    font-size: 1.5rem;
+  .team-flag-emoji {
+    font-size: 1.8rem;
   }
 
   .team-name {
@@ -692,6 +719,10 @@ code {
   grid-column: span 2;
 }
 
+.calc-btn.full-width {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -760,8 +791,8 @@ code {
     gap: 0.5rem;
   }
 
-  .team-flag {
-    font-size: 1.25rem;
+  .team-flag-emoji {
+    font-size: 1.5rem;
   }
 
   .team-name {

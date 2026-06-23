@@ -59,13 +59,13 @@ function App() {
 
   const filteredMatches = useMemo(() => {
     let result = matches
-    
+
     if (activeFilter !== MATCH_STATUSES.ALL) {
       result = dataService.filterMatchesByStatus(matches, activeFilter)
     }
 
     // Sort: FINISHED first, then by date DESC
-    return result.sort((a, b) => {
+    return [...result].sort((a, b) => {
       // FINISHED matches first
       if (a.status === 'FINISHED' && b.status !== 'FINISHED') return -1
       if (a.status !== 'FINISHED' && b.status === 'FINISHED') return 1

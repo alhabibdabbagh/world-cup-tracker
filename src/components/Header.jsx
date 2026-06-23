@@ -4,10 +4,13 @@ function Header({
   tournamentInfo,
   tournaments = [],
   selectedTournamentYear,
-  onTournamentChange
+  onTournamentChange,
+  dataSource = 'static',
+  apiError = null,
+  lastUpdated = new Date(),
+  isRefreshing = false
 }) {
-  const now = new Date()
-  const formattedTime = now.toLocaleString('en-US', {
+  const formattedTime = lastUpdated.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -17,6 +20,11 @@ function Header({
 
   return (
     <header className="header">
+      {apiError && (
+        <div className="error-banner">
+          ⚠️ {apiError}
+        </div>
+      )}
       <div className="header-content">
         <div className="header-calculator">
           <Calculator />
@@ -49,6 +57,8 @@ function Header({
 
           <div className="last-updated">
             Last updated: {formattedTime}
+            {isRefreshing && <span className="refresh-indicator">⟳</span>}
+            {dataSource === 'static' && <span className="data-source-indicator"> (Offline)</span>}
           </div>
         </div>
       </div>

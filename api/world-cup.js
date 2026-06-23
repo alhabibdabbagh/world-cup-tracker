@@ -16,15 +16,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const apiKey = '47623b698cbd488d97dd745b66a6e585'
+  // Use environment variable if available, otherwise use hardcoded key for development
+  const apiKey = process.env.FOOTBALL_DATA_API_KEY || '47623b698cbd488d97dd745b66a6e585'
   const year = Number(req.query.year || 2026)
   const range = DATE_RANGES[year]
-
-  if (!apiKey) {
-    return res.status(500).json({
-      message: 'FOOTBALL_DATA_API_KEY is not configured'
-    })
-  }
 
   if (!range) {
     return res.status(400).json({
