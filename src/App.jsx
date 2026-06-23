@@ -59,11 +59,20 @@ function App() {
   }, [selectedTournamentYear])
 
   const filteredMatches = useMemo(() => {
-    if (activeFilter === 'ALL') {
-      return matches
+    let result = matches
+    
+    if (activeFilter !== 'ALL') {
+      result = dataService.filterMatchesByStatus(matches, activeFilter)
     }
 
-    return dataService.filterMatchesByStatus(matches, activeFilter)
+    // Sort: FINISHED first, then by date DESC
+    return result.sort((a, b) => {
+      // FINISHED matches first
+      if (a.status === 'FINISHED' && b.status !== 'FINISHED') return -1
+      if (a.status !== 'FINISHED' && b.status === 'FINISHED') return 1
+      // Then sort by date DESC (newest first)
+      return new Date(b.kickoff) - new Date(a.kickoff)
+    })
   }, [activeFilter, matches])
 
   const handleTournamentChange = (year) => {

@@ -1,137 +1,293 @@
-import { useState } from 'react'
-import StatusBadge from './StatusBadge'
-import EventList from './EventList'
+import matchesData from './matches.json'
+
+const TOURNAMENTS = {
+  2022: {
+    tournament: 'FIFA World Cup 2022',
+    country: 'Qatar',
+    year: 2022,
+    label: '2022 Qatar'
+  },
+  2026: {
+    tournament: 'FIFA World Cup 2026',
+    country: 'USA • Canada • Mexico',
+    year: 2026,
+    label: '2026 USA • Canada • Mexico'
+  }
+}
 
 const FLAG_CODES = {
-  QAT: 'qa',
-  ECU: 'ec',
-  SEN: 'sn',
-  NED: 'nl',
-  ENG: 'gb-eng',
-  IRN: 'ir',
-  USA: 'us',
-  WAL: 'gb-wls',
   ARG: 'ar',
-  KSA: 'sa',
-  MEX: 'mx',
-  POL: 'pl',
-  FRA: 'fr',
   AUS: 'au',
-  DEN: 'dk',
-  TUN: 'tn',
-  ESP: 'es',
-  CRC: 'cr',
-  GER: 'de',
-  JPN: 'jp',
   BEL: 'be',
-  CAN: 'ca',
-  MAR: 'ma',
-  CRO: 'hr',
   BRA: 'br',
-  SRB: 'rs',
-  SUI: 'ch',
+  CAN: 'ca',
   CMR: 'cm',
-  POR: 'pt',
+  CRC: 'cr',
+  CRO: 'hr',
+  DEN: 'dk',
+  ECU: 'ec',
+  EGY: 'eg',
+  ENG: 'gb-eng',
+  ESP: 'es',
+  FRA: 'fr',
+  GER: 'de',
   GHA: 'gh',
-  URU: 'uy',
+  GRE: 'gr',
+  IRN: 'ir',
+  ITA: 'it',
+  JAM: 'jm',
+  JPN: 'jp',
   KOR: 'kr',
-  TUR: 'tr'
+  KSA: 'sa',
+  MAR: 'ma',
+  MEX: 'mx',
+  NED: 'nl',
+  PAR: 'py',
+  PER: 'pe',
+  POL: 'pl',
+  POR: 'pt',
+  QAT: 'qa',
+  SEN: 'sn',
+  SRB: 'rs',
+  SVK: 'sk',
+  SUI: 'ch',
+  SVN: 'si',
+  SWE: 'se',
+  TUN: 'tn',
+  TUR: 'tr',
+  UKR: 'ua',
+  URU: 'uy',
+  USA: 'us',
+  UZB: 'uz',
+  VEN: 've',
+  VIE: 'vn',
+  WAL: 'gb-wls',
+  ZIM: 'zw'
 }
 
-function getFlagCode(team) {
-  return team.flagCode || team.countryCode || FLAG_CODES[team.code?.toUpperCase()]
+function nullableNumber(value) {
+  return typeof value === 'number' ? value : null
 }
 
-function TeamFlag({ team }) {
-  const [hasError, setHasError] = useState(false)
-  const flagCode = getFlagCode(team)
-  const flagUrl = team.flagUrl || (flagCode ? `https://flagcdn.com/w40/${flagCode}.png` : null)
-
-  if (!flagUrl || hasError) {
-    return <span className="team-flag-emoji">{team.flag || '🏳️'}</span>
+class DataService {
+  constructor() {
+    this.data = matchesData
   }
 
-  return (
-    <img
-      className="team-flag-img"
-      src={flagUrl}
-      alt={`${team.name} flag`}
-      loading="lazy"
-      onError={() => setHasError(true)}
-    />
-  )
-}
+  getMatchYear(match) {
+    if (match.year) return Number(match.year)
+    if (match.tournamentYear) return Number(match.tournamentYear)
 
-function MatchCard({ match }) {
-  const formatDate = (dateString) => {
-    const options = {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (match.kickoff) {
+      const year = new Date(match.kickoff).getFullYear()
+      return Number.isNaN(year) ? null : year
     }
-    return new Date(dateString).toLocaleDateString('en-US', options)
+
+    return this.data.year ? Number(this.data.year) : null
   }
 
-  const hasScore = match.score.home !== null && match.score.away !== null
+  getAvailableTournaments() {
+    return Object.values(TOURNAMENTS)
+  }
 
-  return (
-    <div className="match-card">
-      <div className="match-header">
-        <div className="match-meta">
-          {match.stage && <div className="match-stage">{match.stage}</div>}
-          {match.group && <div className="match-stage">Group {match.group}</div>}
-          <div className="match-datetime">{formatDate(match.kickoff)}</div>
-        </div>
-        <StatusBadge status={match.status} />
-      </div>
+  getTournamentInfo(year = 2026) {
+    return TOURNAMENTS[Number(year)] || {
+      tournament: `FIFA World Cup ${year}`,
+      country: '',
+      year: Number(year),
+      label: String(year)
+    }
+  }
 
-      <div className="match-score">
-        <div className="teams-container">
-          <div className="team">
-            <div className="team-flag">
-              <TeamFlag team={match.homeTeam} />
-            </div>
-            <div className="team-info">
-              <div className="team-name">{match.homeTeam.name}</div>
-              <div className="team-code">{match.homeTeam.code}</div>
-            </div>
-          </div>
+  getAllMatches(year) {
+    const matches = this.data.matches || []
 
-          <div className="score-display">
-            {hasScore ? (
-              <>
-                <div className="score-numbers">
-                  {match.score.home} <span className="score-separator">-</span> {match.score.away}
-                </div>
-                {match.status === 'LIVE' && match.minute && (
-                  <div className="score-label">{match.minute}'</div>
-                )}
-              </>
-            ) : (
-              <div className="no-score">vs</div>
-            )}
-          </div>
+    if (!year) {
+      return matches
+    }
 
-          <div className="team" style={{ justifyContent: 'flex-end' }}>
-            <div className="team-info" style={{ alignItems: 'flex-end' }}>
-              <div className="team-name">{match.awayTeam.name}</div>
-              <div className="team-code">{match.awayTeam.code}</div>
-            </div>
-            <div className="team-flag">
-              <TeamFlag team={match.awayTeam} />
-            </div>
-          </div>
-        </div>
-      </div>
+    return matches.filter(match => this.getMatchYear(match) === Number(year))
+  }
 
-      {match.stadium && (
-        <div className="stadium-info">
-          <div className="stadium-name">🏟️ {match.stadium.name}</div>
-          <div className="stadium-location">
-            {match.stadium.city}, {match.stadium.country}
-          </div>
-        </div>
+  getMatchesByStatus(status, year) {
+    return this.getAllMatches(year).filter(match =>
+      match.status?.toUpperCase() === status.toUpperCase()
+    )
+  }
+
+  filterMatchesByStatus(matches, status) {
+    return matches.filter(match =>
+      match.status?.toUpperCase() === status.toUpperCase()
+    )
+  }
+
+  async getMatches(year) {
+    try {
+      const liveMatches = await this.fetchLiveMatches(year)
+
+      return {
+        matches: liveMatches,
+        source: 'api',
+        error: null,
+        lastUpdated: new Date()
+      }
+    } catch (error) {
+      return {
+        matches: this.getAllMatches(year),
+        source: 'static',
+        error: error.message,
+        lastUpdated: new Date()
+      }
+    }
+  }
+
+  async fetchLiveMatches(year) {
+    const response = await fetch(`/api/world-cup?year=${year}`)
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null)
+      throw new Error(errorData?.message || 'Live API unavailable')
+    }
+
+    const data = await response.json()
+    const matches = data.matches || []
+
+    if (matches.length === 0) {
+      throw new Error('No live matches returned')
+    }
+
+    return this.mergeLocalMatchDetails(
+      matches.map(match => this.normalizeFootballDataMatch(match, year)),
+      year
+    )
+  }
+
+  normalizeFootballDataMatch(match, year) {
+    const score = match.score?.fullTime || {}
+
+    return {
+      id: `football-data-${match.id}`,
+      externalId: match.id,
+      year: Number(year),
+      stage: this.mapStage(match.stage),
+      group: this.mapGroup(match.group),
+      homeTeam: this.normalizeTeam(match.homeTeam),
+      awayTeam: this.normalizeTeam(match.awayTeam),
+      kickoff: match.utcDate,
+      status: this.mapStatus(match.status),
+      minute: null,
+      stadium: null,
+      score: {
+        home: nullableNumber(score.home),
+        away: nullableNumber(score.away)
+      },
+      events: [],
+      source: 'football-data.org',
+      lastUpdated: match.lastUpdated
+    }
+  }
+
+  normalizeTeam(team = {}) {
+    const code = (team.tla || team.shortName || team.name || 'TBD')
+      .slice(0, 3)
+      .toUpperCase()
+
+    const flagCode = FLAG_CODES[code]
+    // Preserve emoji flag from source data, fallback to blank flag
+    const emojiFlag = team.flag || (code === 'TBD' ? '🏳️' : '')
+
+    return {
+      name: team.shortName || team.name || 'TBD',
+      code,
+
+      flag: emojiFlag,
+      flagCode,
+      flagUrl: flagCode ? `https://flagcdn.com/w40/${flagCode}.png` : null
+    }
+  }
+
+  mapStatus(status) {
+    switch (status) {
+      case 'IN_PLAY':
+      case 'PAUSED':
+        return 'LIVE'
+      case 'FINISHED':
+      case 'AWARDED':
+        return 'FINISHED'
+      case 'POSTPONED':
+      case 'SUSPENDED':
+        return 'POSTPONED'
+      case 'CANCELED':
+      case 'CANCELLED':
+        return 'CANCELLED'
+      case 'SCHEDULED':
+      case 'TIMED':
+      default:
+        return 'SCHEDULED'
+    }
+  }
+
+  mapStage(stage) {
+    const stages = {
+      GROUP_STAGE: 'Group Stage',
+      LAST_16: 'Round of 16',
+      QUARTER_FINALS: 'Quarter-Finals',
+      SEMI_FINALS: 'Semi-Finals',
+      THIRD_PLACE: 'Third Place',
+      FINAL: 'Final'
+    }
+
+    return stages[stage] || stage || ''
+  }
+
+  mapGroup(group) {
+    if (!group) return null
+    return group.replace('GROUP_', '')
+  }
+
+  mergeLocalMatchDetails(apiMatches, year) {
+    const localMatches = this.getAllMatches(year)
+
+    return apiMatches.map(apiMatch => {
+      const localMatch = localMatches.find(local => this.isSameFixture(local, apiMatch))
+
+      if (!localMatch) {
+        return apiMatch
+      }
+
+      return {
+        ...apiMatch,
+        stadium: localMatch.stadium || apiMatch.stadium,
+        events: localMatch.events || apiMatch.events,
+        homeTeam: {
+          ...localMatch.homeTeam,
+          ...apiMatch.homeTeam
+        },
+        awayTeam: {
+          ...localMatch.awayTeam,
+          ...apiMatch.awayTeam
+        }
+      }
+    })
+  }
+
+  isSameFixture(localMatch, apiMatch) {
+    const sameTeams =
+      localMatch.homeTeam?.code === apiMatch.homeTeam?.code &&
+      localMatch.awayTeam?.code === apiMatch.awayTeam?.code
+
+    if (!sameTeams) {
+      return false
+    }
+
+    const localDate = new Date(localMatch.kickoff).toISOString().slice(0, 10)
+    const apiDate = new Date(apiMatch.kickoff).toISOString().slice(0, 10)
+
+    return localDate === apiDate
+  }
+}
+
+export default new DataService()
       )}
 
       <EventList events={match.events} />

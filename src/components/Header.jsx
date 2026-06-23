@@ -1,3 +1,5 @@
+import Calculator from './Calculator'
+
 function Header({
   tournamentInfo,
   tournaments = [],
@@ -15,34 +17,39 @@ function Header({
 
   return (
     <header className="header">
-      <div className="container">
-        <h1>⚽ World Cup Tracker</h1>
-        <p>Free, real-time World Cup match information</p>
-
-        <div className="filter-bar" role="group" aria-label="Select tournament">
-          {tournaments.map(tournament => (
-            <button
-              key={tournament.year}
-              type="button"
-              className={`filter-btn ${
-                selectedTournamentYear === tournament.year ? 'active' : ''
-              }`}
-              onClick={() => onTournamentChange(tournament.year)}
-              aria-pressed={selectedTournamentYear === tournament.year}
-            >
-              {tournament.label}
-            </button>
-          ))}
+      <div className="header-content">
+        <div className="header-calculator">
+          <Calculator />
         </div>
+        <div className="header-info">
+          <h1>⚽ World Cup Tracker</h1>
+          <p>Free, real-time World Cup match information</p>
 
-        {tournamentInfo && (
-          <div className="tournament-info">
-            <p>{tournamentInfo.tournament} • {tournamentInfo.country} {tournamentInfo.year}</p>
+          <div className="filter-bar" role="group" aria-label="Select tournament">
+            {tournaments.map(tournament => (
+              <button
+                key={tournament.year}
+                type="button"
+                className={`filter-btn ${
+                  selectedTournamentYear === tournament.year ? 'active' : ''
+                }`}
+                onClick={() => onTournamentChange(tournament.year)}
+                aria-pressed={selectedTournamentYear === tournament.year}
+              >
+                {tournament.label}
+              </button>
+            ))}
           </div>
-        )}
 
-        <div className="last-updated">
-          Last updated: {formattedTime}
+          {tournamentInfo && (
+            <div className="tournament-info">
+              <p>{tournamentInfo.tournament} • {tournamentInfo.country} {tournamentInfo.year}</p>
+            </div>
+          )}
+
+          <div className="last-updated">
+            Last updated: {formattedTime}
+          </div>
         </div>
       </div>
     </header>
